@@ -1,0 +1,155 @@
+---
+title: "nycflights13"
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(DBI)
+library(RPostgres)
+
+con <- dbConnect(odbc::odbc(), dsn="nycflights13")
+```
+
+```{sql}
+#| connection: con
+#| eval: TRUE
+#| echo: FALSE
+
+SELECT COUNT(*) AS missing_combinations
+FROM (
+    SELECT DISTINCT origin, time_hour
+    FROM flights
+) AS f
+LEFT JOIN (
+    SELECT DISTINCT origin, time_hour
+    FROM weather
+) AS w
+ON f.origin = w.origin AND f.time_hour = w.time_hour
+WHERE w.origin IS NULL;
+```
+
+```{sql}
+#| connection: con
+#| eval: TRUE
+#| echo: FALSE
+
+WITH flight_weather AS (
+    SELECT
+        f.origin AS airport_code,
+        a.name AS airport_name,
+        CASE WHEN w.precip = 0 THEN TRUE ELSE FALSE END AS is_dry,
+        COUNT(*) AS total_flights,
+        SUM(CASE WHEN f.dep_delay <= 0 THEN 1 ELSE 0 END) AS on_time_flights
+    FROM flights AS f
+    JOIN weather AS w
+    ON f.origin = w.origin AND f.time_hour = w.time_hour
+    JOIN airports AS a
+    ON f.origin = a.faa
+    WHERE f.origin IN ('JFK', 'LGA', 'EWR')
+    GROUP BY f.origin, a.name, is_dry
+)
+SELECT
+    airport_code,
+    airport_name,
+    is_dry,
+    ROUND((on_time_flights::numeric / total_flights) * 100, 2) AS on_time_percentage
+FROM flight_weather
+ORDER BY airport_code, is_dry;
+```
+
+```{sql}
+#| connection: con
+#| eval: TRUE
+#| echo: FALSE
+
+WITH visibility_delays AS (
+    SELECT
+        f.origin AS airport_code,
+        a.name AS airport_name,
+        AVG(f.dep_delay) AS mean_dep_delay
+    FROM flights AS f
+    JOIN weather AS w
+    ON f.origin = w.origin AND f.time_hour = w.time_hour
+    JOIN airports AS a
+    ON f.origin = a.faa
+    WHERE w.visib < 1 AND f.origin IN ('JFK', 'LGA', 'EWR')
+    GROUP BY f.origin, a.name
+),
+ranked_delays AS (
+    SELECT
+        airport_code,
+        airport_name,
+        ROUND(mean_dep_delay, 2) AS mean_dep_delay,
+        RANK() OVER (ORDER BY mean_dep_delay ASC) AS rank
+    FROM visibility_delays
+)
+SELECT
+    airport_code,
+    airport_name,
+    mean_dep_delay,
+    rank
+FROM ranked_delays
+ORDER BY rank, airport_code;
+```
+
+```{sql}
+#| connection: con
+#| eval: TRUE
+#| echo: FALSE
+
+WITH daily_avg_temp AS (
+    SELECT
+        DATE_TRUNC('day', time_hour) AS day,
+        AVG(temp) AS avg_temp
+    FROM weather
+    WHERE DATE_PART('year', time_hour) = 2013
+    GROUP BY DATE_TRUNC('day', time_hour)
+),
+daily_avg_delay AS (
+    SELECT
+        DATE_TRUNC('day', time_hour) AS day,
+        AVG(dep_delay) AS avg_dep_delay
+    FROM flights
+    WHERE DATE_PART('year', time_hour) = 2013
+    GROUP BY DATE_TRUNC('day', time_hour)
+)
+SELECT
+    TO_CHAR(CORR(daily_avg_temp.avg_temp, daily_avg_delay.avg_dep_delay), 'FM999999999.00') AS correlation_coefficient
+FROM
+    daily_avg_temp
+INNER JOIN daily_avg_delay
+ON daily_avg_temp.day = daily_avg_delay.day;
+```
+
+```{sql}
+#| connection: con
+#| eval: TRUE
+#| echo: FALSE
+
+WITH wind_direction AS (
+    SELECT
+        CASE
+            WHEN (w.wind_dir BETWEEN 135 AND 225) THEN 'South'
+            WHEN (w.wind_dir BETWEEN 0 AND 45) OR (w.wind_dir BETWEEN 315 AND 360) THEN 'North'
+        END AS wind_direction,
+        f.air_time
+    FROM
+        flights AS f
+    JOIN
+        weather AS w
+    ON
+        f.origin = w.origin AND f.time_hour = w.time_hour
+    WHERE
+        f.dest = 'BTV'
+)
+SELECT
+    wind_direction,
+    AVG(air_time) AS mean_air_time
+FROM
+    wind_direction
+GROUP BY
+    wind_direction;
+```
