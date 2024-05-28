@@ -52,6 +52,7 @@ SELECT dest, name, COUNT(*) AS num_flights, RANK() OVER (ORDER BY COUNT(*) DESC)
 FROM flights
 INNER JOIN chicago_airports
 ON flights.dest = chicago_airports.faa
+WHERE flights.origin IN ('JFK', 'LGA', 'EWR')
 GROUP BY dest, name
 ORDER BY rank, dest;
 ```
@@ -74,6 +75,7 @@ SELECT airlines.carrier, airlines.name, COUNT(*) AS num_flights, RANK() OVER (OR
 FROM airlines
 INNER JOIN flights ON airlines.carrier = flights.carrier
 INNER JOIN chicago_airports ON flights.dest = chicago_airports.faa
+WHERE flights.origin IN ('JFK', 'LGA', 'EWR')
 GROUP BY airlines.carrier, airlines.name
 ORDER BY rank, airlines.carrier;
 ```
@@ -95,6 +97,7 @@ SELECT manufacturer, model, COUNT(*) AS num_flights, RANK() OVER (ORDER BY COUNT
 FROM planes
 INNER JOIN flights ON planes.tailnum = flights.tailnum
 INNER JOIN chicago_airports ON flights.dest = chicago_airports.faa
+WHERE flights.origin IN ('JFK', 'LGA', 'EWR')
 GROUP BY manufacturer, model
 ORDER BY rank, manufacturer, model
 LIMIT 10;
@@ -128,7 +131,7 @@ INNER JOIN airports AS a1 ON flights.origin = a1.faa
 INNER JOIN airports AS a2 ON flights.dest = a2.faa
 INNER JOIN planes ON flights.tailnum = planes.tailnum
 INNER JOIN chicago_airports ON flights.dest = chicago_airports.faa
-WHERE flights.year = 2013
+WHERE flights.year = 2013 AND flights.origin IN ('JFK', 'LGA', 'EWR')
 GROUP BY origin, origin_name, dest, dest_name
 ORDER BY num_seats, origin, dest;
 
