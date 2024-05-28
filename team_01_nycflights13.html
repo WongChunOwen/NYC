@@ -618,8 +618,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> flights</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="kw">INNER</span> <span class="kw">JOIN</span> chicago_airports</span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> flights.dest <span class="op">=</span> chicago_airports.faa</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="kw">GROUP</span> <span class="kw">BY</span> dest, name</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="kw">ORDER</span> <span class="kw">BY</span> <span class="fu">rank</span>, dest;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="kw">WHERE</span> flights.origin <span class="kw">IN</span> (<span class="st">'JFK'</span>, <span class="st">'LGA'</span>, <span class="st">'EWR'</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="kw">GROUP</span> <span class="kw">BY</span> dest, name</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="kw">ORDER</span> <span class="kw">BY</span> <span class="fu">rank</span>, dest;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <table class="table table-sm table-striped small">
 <caption>2 records</caption>
@@ -659,16 +660,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
 <p>Sort the results first by rank and, then, alphabetically by the two-letter airline code.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> airlines.carrier, name, <span class="fu">COUNT</span>(<span class="op">*</span>) <span class="kw">AS</span> num_flights, <span class="fu">RANK</span>() <span class="kw">OVER</span> (<span class="kw">ORDER</span> <span class="kw">BY</span> <span class="fu">COUNT</span>(<span class="op">*</span>) <span class="kw">DESC</span>) <span class="kw">AS</span> <span class="fu">rank</span></span>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> airlines.carrier, airlines.name, <span class="fu">COUNT</span>(<span class="op">*</span>) <span class="kw">AS</span> num_flights, <span class="fu">RANK</span>() <span class="kw">OVER</span> (<span class="kw">ORDER</span> <span class="kw">BY</span> <span class="fu">COUNT</span>(<span class="op">*</span>) <span class="kw">DESC</span>) <span class="kw">AS</span> <span class="fu">rank</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> airlines</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">INNER</span> <span class="kw">JOIN</span> flights</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> airlines.carrier <span class="op">=</span> flights.carrier</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="kw">WHERE</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  (<span class="kw">SELECT</span> <span class="fu">COUNT</span>(<span class="op">*</span>)</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>   <span class="kw">FROM</span> chicago_airports</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>   <span class="kw">WHERE</span> flights.dest <span class="op">=</span> chicago_airports.faa) <span class="op">&gt;</span> <span class="dv">0</span></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="kw">GROUP</span> <span class="kw">BY</span> airlines.carrier, name</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="kw">ORDER</span> <span class="kw">BY</span> <span class="fu">rank</span>, airlines.carrier;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">INNER</span> <span class="kw">JOIN</span> flights <span class="kw">ON</span> airlines.carrier <span class="op">=</span> flights.carrier</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="kw">INNER</span> <span class="kw">JOIN</span> chicago_airports <span class="kw">ON</span> flights.dest <span class="op">=</span> chicago_airports.faa</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="kw">WHERE</span> flights.origin <span class="kw">IN</span> (<span class="st">'JFK'</span>, <span class="st">'LGA'</span>, <span class="st">'EWR'</span>)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="kw">GROUP</span> <span class="kw">BY</span> airlines.carrier, airlines.name</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="kw">ORDER</span> <span class="kw">BY</span> <span class="fu">rank</span>, airlines.carrier;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <table class="table table-sm table-striped small">
 <caption>8 records</caption>
@@ -746,14 +744,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> manufacturer, model, <span class="fu">COUNT</span>(<span class="op">*</span>) <span class="kw">AS</span> num_flights, <span class="fu">RANK</span>() <span class="kw">OVER</span> (<span class="kw">ORDER</span> <span class="kw">BY</span> <span class="fu">COUNT</span>(<span class="op">*</span>) <span class="kw">DESC</span>) <span class="kw">AS</span> <span class="fu">rank</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> planes</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="kw">INNER</span> <span class="kw">JOIN</span> flights</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> planes.tailnum <span class="op">=</span> flights.tailnum</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="kw">WHERE</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  (<span class="kw">SELECT</span> <span class="fu">COUNT</span>(<span class="op">*</span>)</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>   <span class="kw">FROM</span> chicago_airports</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>   <span class="kw">WHERE</span> flights.dest <span class="op">=</span> chicago_airports.faa) <span class="op">&gt;</span> <span class="dv">0</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="kw">GROUP</span> <span class="kw">BY</span> manufacturer, model</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="kw">ORDER</span> <span class="kw">BY</span> <span class="fu">rank</span>, manufacturer, model;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="kw">INNER</span> <span class="kw">JOIN</span> flights <span class="kw">ON</span> planes.tailnum <span class="op">=</span> flights.tailnum</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="kw">INNER</span> <span class="kw">JOIN</span> chicago_airports <span class="kw">ON</span> flights.dest <span class="op">=</span> chicago_airports.faa</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="kw">WHERE</span> flights.origin <span class="kw">IN</span> (<span class="st">'JFK'</span>, <span class="st">'LGA'</span>, <span class="st">'EWR'</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="kw">GROUP</span> <span class="kw">BY</span> manufacturer, model</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="kw">ORDER</span> <span class="kw">BY</span> <span class="fu">rank</span>, manufacturer, model</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="kw">LIMIT</span> <span class="dv">10</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <table class="table table-sm table-striped small">
 <caption>Displaying records 1 - 10</caption>
@@ -831,8 +827,99 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <ol start="5" type="1">
-<li></li>
+<li>For each combination of origin airport in New York City and destination airport in Chicago, what was the total number of available seats during 2013? Include columns for the following attributes:</li>
 </ol>
+<ul>
+<li>Three-letter code of the origin airport</li>
+<li>Name of the origin airport</li>
+<li>Three-letter code of the destination airport</li>
+<li>Name of the destination airport</li>
+<li>Number of seats</li>
+<li>Rank</li>
+</ul>
+<p>Sort the results first by the number of seats, then alphabetically by the three-letter code of the origin airport, and, lastly, by the three-letter code of the destination airport. <strong>Hint: use <code>INNER JOIN</code> combined with <code>AS</code> wisely.</strong></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    origin, </span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    a1.name <span class="kw">AS</span> origin_name, </span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    dest, </span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    a2.name <span class="kw">AS</span> dest_name, </span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">SUM</span>(seats) <span class="kw">AS</span> num_seats, </span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">RANK</span>() <span class="kw">OVER</span> (<span class="kw">ORDER</span> <span class="kw">BY</span> <span class="fu">SUM</span>(seats) <span class="kw">DESC</span>) <span class="kw">AS</span> <span class="fu">rank</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> flights</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="kw">INNER</span> <span class="kw">JOIN</span> airports <span class="kw">AS</span> a1 <span class="kw">ON</span> flights.origin <span class="op">=</span> a1.faa</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="kw">INNER</span> <span class="kw">JOIN</span> airports <span class="kw">AS</span> a2 <span class="kw">ON</span> flights.dest <span class="op">=</span> a2.faa</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="kw">INNER</span> <span class="kw">JOIN</span> planes <span class="kw">ON</span> flights.tailnum <span class="op">=</span> planes.tailnum</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="kw">INNER</span> <span class="kw">JOIN</span> chicago_airports <span class="kw">ON</span> flights.dest <span class="op">=</span> chicago_airports.faa</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="kw">WHERE</span> flights.<span class="dt">year</span> <span class="op">=</span> <span class="dv">2013</span> <span class="kw">AND</span> flights.origin <span class="kw">IN</span> (<span class="st">'JFK'</span>, <span class="st">'LGA'</span>, <span class="st">'EWR'</span>)</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="kw">GROUP</span> <span class="kw">BY</span> origin, origin_name, dest, dest_name</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="kw">ORDER</span> <span class="kw">BY</span> num_seats <span class="kw">DESC</span>, origin, dest;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<caption>5 records</caption>
+<colgroup>
+<col style="width: 10%">
+<col style="width: 29%">
+<col style="width: 7%">
+<col style="width: 29%">
+<col style="width: 14%">
+<col style="width: 7%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">origin</th>
+<th style="text-align: left;">origin_name</th>
+<th style="text-align: left;">dest</th>
+<th style="text-align: left;">dest_name</th>
+<th style="text-align: right;">num_seats</th>
+<th style="text-align: right;">rank</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">LGA</td>
+<td style="text-align: left;">La Guardia</td>
+<td style="text-align: left;">ORD</td>
+<td style="text-align: left;">Chicago Ohare Intl</td>
+<td style="text-align: right;">910773</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">EWR</td>
+<td style="text-align: left;">Newark Liberty Intl</td>
+<td style="text-align: left;">ORD</td>
+<td style="text-align: left;">Chicago Ohare Intl</td>
+<td style="text-align: right;">667556</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">LGA</td>
+<td style="text-align: left;">La Guardia</td>
+<td style="text-align: left;">MDW</td>
+<td style="text-align: left;">Chicago Midway Intl</td>
+<td style="text-align: right;">290085</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">EWR</td>
+<td style="text-align: left;">Newark Liberty Intl</td>
+<td style="text-align: left;">MDW</td>
+<td style="text-align: left;">Chicago Midway Intl</td>
+<td style="text-align: right;">287708</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">JFK</td>
+<td style="text-align: left;">John F Kennedy Intl</td>
+<td style="text-align: left;">ORD</td>
+<td style="text-align: left;">Chicago Ohare Intl</td>
+<td style="text-align: right;">154230</td>
+<td style="text-align: right;">5</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </section>
 <section id="task-4-uncovering-associations-between-weather-and-flight-operations" class="level1">
 <h1>Task 4: Uncovering Associations between Weather and Flight Operations</h1>
@@ -978,7 +1065,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="cell-output-display">
 <table class="table table-sm table-striped small">
-<caption>3 records</caption>
+<caption>2 records</caption>
 <thead>
 <tr class="header">
 <th style="text-align: left;">wind_direction</th>
@@ -993,10 +1080,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td style="text-align: left;">South</td>
 <td style="text-align: right;">46.33754</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">NA</td>
-<td style="text-align: right;">46.58833</td>
 </tr>
 </tbody>
 </table>

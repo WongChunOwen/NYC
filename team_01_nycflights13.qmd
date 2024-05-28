@@ -316,7 +316,6 @@ ORDER BY
 
 
 # Task 3: Exploring Flights from New York City to Chicago
-
 1. Which airport names in the `airports` table contain the string '`Chicago`'? Create a view named `chicago_airports` to save the result, including only the `faa` and `name` columns.
 
 ```{sql}
@@ -357,6 +356,7 @@ SELECT dest, name, COUNT(*) AS num_flights, RANK() OVER (ORDER BY COUNT(*) DESC)
 FROM flights
 INNER JOIN chicago_airports
 ON flights.dest = chicago_airports.faa
+WHERE flights.origin IN ('JFK', 'LGA', 'EWR')
 GROUP BY dest, name
 ORDER BY rank, dest;
 ```
@@ -375,15 +375,12 @@ Sort the results first by rank and, then, alphabetically by the two-letter airli
 #| eval: true
 #| echo: true
 
-SELECT airlines.carrier, name, COUNT(*) AS num_flights, RANK() OVER (ORDER BY COUNT(*) DESC) AS rank
+SELECT airlines.carrier, airlines.name, COUNT(*) AS num_flights, RANK() OVER (ORDER BY COUNT(*) DESC) AS rank
 FROM airlines
-INNER JOIN flights
-ON airlines.carrier = flights.carrier
-WHERE
-  (SELECT COUNT(*)
-   FROM chicago_airports
-   WHERE flights.dest = chicago_airports.faa) > 0
-GROUP BY airlines.carrier, name
+INNER JOIN flights ON airlines.carrier = flights.carrier
+INNER JOIN chicago_airports ON flights.dest = chicago_airports.faa
+WHERE flights.origin IN ('JFK', 'LGA', 'EWR')
+GROUP BY airlines.carrier, airlines.name
 ORDER BY rank, airlines.carrier;
 ```
 
@@ -402,18 +399,47 @@ Sort by rank, then alphabetically by manufacturer, and, lastly, by model.
 
 SELECT manufacturer, model, COUNT(*) AS num_flights, RANK() OVER (ORDER BY COUNT(*) DESC) AS rank
 FROM planes
-INNER JOIN flights
-ON planes.tailnum = flights.tailnum
-WHERE
-  (SELECT COUNT(*)
-   FROM chicago_airports
-   WHERE flights.dest = chicago_airports.faa) > 0
+INNER JOIN flights ON planes.tailnum = flights.tailnum
+INNER JOIN chicago_airports ON flights.dest = chicago_airports.faa
+WHERE flights.origin IN ('JFK', 'LGA', 'EWR')
 GROUP BY manufacturer, model
-ORDER BY rank, manufacturer, model;
+ORDER BY rank, manufacturer, model
+LIMIT 10;
 ```
 
-5. 
+5. For each combination of origin airport in New York City and destination airport in Chicago, what was the total number of available seats during 2013? Include columns for the following attributes:
 
+- Three-letter code of the origin airport
+- Name of the origin airport
+- Three-letter code of the destination airport
+- Name of the destination airport
+- Number of seats
+- Rank
+
+Sort the results first by the number of seats, then alphabetically by the three-letter code of the origin airport, and, lastly, by the three-letter code of the destination airport. **Hint: use `INNER JOIN` combined with `AS` wisely.**
+
+```{sql}
+#| connection: con_nycflights13
+#| eval: true
+#| echo: true
+
+SELECT 
+    origin, 
+    a1.name AS origin_name, 
+    dest, 
+    a2.name AS dest_name, 
+    SUM(seats) AS num_seats, 
+    RANK() OVER (ORDER BY SUM(seats) DESC) AS rank
+FROM flights
+INNER JOIN airports AS a1 ON flights.origin = a1.faa
+INNER JOIN airports AS a2 ON flights.dest = a2.faa
+INNER JOIN planes ON flights.tailnum = planes.tailnum
+INNER JOIN chicago_airports ON flights.dest = chicago_airports.faa
+WHERE flights.year = 2013 AND flights.origin IN ('JFK', 'LGA', 'EWR')
+GROUP BY origin, origin_name, dest, dest_name
+ORDER BY num_seats DESC, origin, dest;
+
+```
 # Task 4: Uncovering Associations between Weather and Flight Operations
 1. How many combinations of origin airport and time_hour are present in the flights table but absent from the weather table? Provide your answer in the form of a table with one row and one column.
 ```{sql}
@@ -550,6 +576,7 @@ WITH wind_direction AS (
         CASE
             WHEN (w.wind_dir BETWEEN 135 AND 225) THEN 'South'
             WHEN (w.wind_dir BETWEEN 0 AND 45) OR (w.wind_dir BETWEEN 315 AND 360) THEN 'North'
+            ELSE NULL
         END AS wind_direction,
         f.air_time
     FROM
@@ -566,6 +593,7 @@ SELECT
     AVG(air_time) AS mean_air_time
 FROM
     wind_direction
+WHERE wind_direction IS NOT NULL
 GROUP BY
     wind_direction;
 ```
