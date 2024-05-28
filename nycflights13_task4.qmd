@@ -1,6 +1,8 @@
 ---
 title: "nycflights13"
-format: html
+format:
+  html:
+    embed-resources: true
 ---
 
 ```{r}
@@ -8,15 +10,15 @@ format: html
 #| include: false
 
 library(DBI)
-library(RPostgres)
 
 con <- dbConnect(odbc::odbc(), dsn="nycflights13")
 ```
 
+1. How many combinations of origin airport and time_hour are present in the flights table but absent from the weather table? Provide your answer in the form of a table with one row and one column.
 ```{sql}
 #| connection: con
 #| eval: TRUE
-#| echo: FALSE
+#| echo: TRUE
 
 SELECT COUNT(*) AS missing_combinations
 FROM (
@@ -30,11 +32,17 @@ LEFT JOIN (
 ON f.origin = w.origin AND f.time_hour = w.time_hour
 WHERE w.origin IS NULL;
 ```
+2. What is the percentage of on-time departures from each of New York City’s main airports under dry conditions (i.e., precip = 0) and under wet conditions? Include columns for the following attributes:
+
+- Three-letter airport code
+- Airport name
+- is_dry: Boolean values indicating zero precipitation.
+- Percentage of on-time departures, rounded to two decimal places
 
 ```{sql}
 #| connection: con
 #| eval: TRUE
-#| echo: FALSE
+#| echo: TRUE
 
 WITH flight_weather AS (
     SELECT
@@ -60,10 +68,18 @@ FROM flight_weather
 ORDER BY airport_code, is_dry;
 ```
 
+3. How do New York City’s main airports rank in terms of mean departure delay when the visibility was less than one mile? Include columns for the following attributes:
+
+- Three-letter airport code
+- Airport name
+- Mean departure delay in minutes, rounded to two decimal places
+- Rank
+
+Sort the results first by rank (starting with the smallest delay) and, then, alphabetically by the three-letter airport code.
 ```{sql}
 #| connection: con
 #| eval: TRUE
-#| echo: FALSE
+#| echo: TRUE
 
 WITH visibility_delays AS (
     SELECT
@@ -94,7 +110,7 @@ SELECT
 FROM ranked_delays
 ORDER BY rank, airport_code;
 ```
-
+4. What is the correlation coefficient between the mean temperature of the day and the mean departure delay on that day? Round the value to two decimal places. Provide the answer in the form of a table with one row and one column. Hint: calculate the AVG() of temperature for each day in 2013, and then the AVG() of departure delay for each day in 2013. After that, calculate the CORR() between these two sequences (of length 365 or less). Remember to INNER JOIN flights and weather.
 ```{sql}
 #| connection: con
 #| eval: TRUE
@@ -123,7 +139,7 @@ FROM
 INNER JOIN daily_avg_delay
 ON daily_avg_temp.day = daily_avg_delay.day;
 ```
-
+5. Burlington, Vermont, lies almost exactly to the north of New York City. Is the mean flight time to Burlington International Airport (BTV) shorter when the wind blows from the south (between 135 and 225 degrees) compared to when it blows from the north (between 0 and 45 degrees as well as between 315 and 360 degrees)? Provide your answer in the form of a table with one row each for north and south winds, and two columns, named wind_direction and mean_air_time. Hint: CASE expression.
 ```{sql}
 #| connection: con
 #| eval: TRUE
