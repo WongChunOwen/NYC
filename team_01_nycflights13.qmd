@@ -1,0 +1,38 @@
+---
+title: "Lab 04"
+author: Wong Chun Owen
+format:
+  html:
+    toc: true
+---
+
+## Section 1
+
+```{r}
+#| label: setup
+#| include: false
+
+library(knitr)
+library(kableExtra)
+library(DBI)
+con <- dbConnect(odbc::odbc(), dsn="NYC", timeout = 10)
+
+
+```
+1. List all flights that were delayed more than 30 minutes on departure.
+
+```{sql}
+#| connection: con
+#| eval: true
+#| echo: true
+
+SELECT(1.0 *
+(SELECT COUNT(*) AS engine
+FROM planes
+WHERE engine = 'Turbo-fan')
+/
+(SELECT COUNT(*) AS engine
+FROM planes
+WHERE engine = 'Turbo-jet')
+)
+```
