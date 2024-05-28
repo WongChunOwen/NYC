@@ -11,6 +11,8 @@ format:
 
 # Other member pushing the nycflights13 folder
 ![](addingNYC.png)
+# Final commit
+![](final.png)
 
 # Task 1: Establishing a Productive Software Environment for the Project
 ```{r}
