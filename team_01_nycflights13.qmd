@@ -29,9 +29,10 @@ con_nycflights13 <- DBI::dbConnect(odbc::odbc(), dsn = "nycflights13")
 DROP TABLE IF EXISTS airlines CASCADE;
 
 -- Create the airlines table with appropriate columns
-CREATE TABLE airlines(
-    carrier VARCHAR(255) PRIMARY KEY,
-    name VARCHAR(255)
+CREATE TABLE airlines (
+    carrier CHAR(2),
+    name VARCHAR(255),
+    PRIMARY KEY (carrier)
 );
 
 -- Import data from the CSV file
@@ -44,14 +45,15 @@ DROP TABLE IF EXISTS airports CASCADE;
 
 -- Create the airports table with appropriate columns
 CREATE TABLE airports (
-    faa VARCHAR(255) PRIMARY KEY,
+    faa CHAR(3),
     name VARCHAR(255),
-    lat DOUBLE PRECISION,
-    lon DOUBLE PRECISION,
+    lat NUMERIC,
+    lon NUMERIC,
     alt INT,
     tz INT,
-    dst VARCHAR(1),
-    tzone VARCHAR(255)
+    dst CHAR(1),
+    tzone VARCHAR(255),
+    PRIMARY KEY (faa)
 );
 
 -- Import data from the CSV file
@@ -73,16 +75,17 @@ CREATE TABLE flights (
     arr_time INT,
     sched_arr_time INT,
     arr_delay INT,
-    carrier VARCHAR(255),
+    carrier CHAR(2),
     flight INT,
-    tailnum VARCHAR(255),
-    origin VARCHAR(255),
-    dest VARCHAR(255),
+    tailnum VARCHAR(6),
+    origin CHAR(3),
+    dest CHAR(3),
     air_time INT,
     distance INT,
     hour INT,
     minute INT,
-    time_hour TIMESTAMP
+    time_hour TIMESTAMP,
+    PRIMARY KEY (carrier, flight, time_hour)
 );
 
 -- Import data from the CSV file
@@ -93,7 +96,11 @@ CSV HEADER;
 
 -- Drop the table if it exists
 DROP TABLE IF EXISTS planes CASCADE;
-
+```
+```{sql}
+#| connection: con_nycflights13
+#| eval: true
+#| echo: true
 -- Create the planes table with appropriate columns
 CREATE TABLE planes (
     tailnum VARCHAR(255) PRIMARY KEY,
@@ -111,28 +118,33 @@ CREATE TABLE planes (
 COPY planes(tailnum, year, type, manufacturer, model, engines, seats, speed, engine)
 FROM 'C:/Users/phoin/Desktop/planes.csv'
 CSV HEADER;
-
-
+```
+```{sql}
+#| connection: con_nycflights13
+#| eval: true
+#| echo: false
+#| 
 -- Drop the table if it exists
 DROP TABLE IF EXISTS weather CASCADE;
 
 -- Create the weather table with appropriate columns
 CREATE TABLE weather (
-    origin VARCHAR(255),
+    origin CHAR(3),
     year INT,
     month INT,
     day INT,
     hour INT,
-    temp DOUBLE PRECISION,
-    dewp DOUBLE PRECISION,
-    humid DOUBLE PRECISION,
+    temp NUMERIC,
+    dewp NUMERIC,
+    humid NUMERIC,
     wind_dir INT,
-    wind_speed DOUBLE PRECISION,
-    wind_gust DOUBLE PRECISION,
-    precip DOUBLE PRECISION,
-    pressure DOUBLE PRECISION,
-    visib DOUBLE PRECISION,
-    time_hour TIMESTAMP
+    wind_speed NUMERIC,
+    wind_gust NUMERIC,
+    precip NUMERIC,
+    pressure NUMERIC,
+    visib NUMERIC,
+    time_hour TIMESTAMP,
+    PRIMARY KEY (origin, time_hour)
 );
 
 -- Import data from the CSV file
@@ -140,6 +152,13 @@ COPY weather(origin, year, month, day, hour, temp, dewp, humid, wind_dir, wind_s
 FROM 'C:/Users/phoin/Desktop/weather.csv'
 CSV HEADER;
 
+ALTER TABLE flights
+ADD FOREIGN KEY (carrier) REFERENCES airlines (carrier),
+ADD FOREIGN KEY (origin) REFERENCES airports (faa),
+ADD FOREIGN KEY (dest) REFERENCES airports (faa),
+ADD FOREIGN KEY (tailnum) REFERENCES planes (tailnum);
+ALTER TABLE weather
+ADD FOREIGN KEY (origin) REFERENCES airports (faa);
 ```
 
 # Task 2: Aggregating Information from the `flights` Table
