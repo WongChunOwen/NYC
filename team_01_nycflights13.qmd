@@ -37,7 +37,7 @@ CREATE TABLE airlines (
 
 -- Import data from the CSV file
 COPY airlines
-FROM 'C:/Users/phoin/Desktop/airlines.csv'
+FROM 'C:\Users\itsss\Downloads\nycflights\airlines.csv'
 CSV HEADER;
 
 -- Drop the table if it exists
@@ -58,7 +58,7 @@ CREATE TABLE airports (
 
 -- Import data from the CSV file
 COPY airports(faa, name, lat, lon, alt, tz, dst, tzone)
-FROM 'C:/Users/phoin/Desktop/airports.csv'
+FROM 'C:\Users\itsss\Downloads\nycflights\airports.csv'
 CSV HEADER;
 
 -- Drop the table if it exists
@@ -90,7 +90,7 @@ CREATE TABLE flights (
 
 -- Import data from the CSV file
 COPY flights(year, month, day, dep_time, sched_dep_time, dep_delay, arr_time, sched_arr_time, arr_delay, carrier, flight, tailnum, origin, dest, air_time, distance, hour, minute, time_hour)
-FROM 'C:/Users/phoin/Desktop/flights.csv'
+FROM 'C:\Users\itsss\Downloads\nycflights\flights.csv'
 CSV HEADER;
 
 
@@ -163,6 +163,39 @@ ADD FOREIGN KEY (origin) REFERENCES airports (faa);
 ```
 
 # Task 2: Aggregating Information from the `flights` Table
+
+```{sql}
+
+#| connection: con_nycflights
+SELECT
+    origin AS airport_code,
+    a.name AS airport_name,
+    COUNT(DISTINCT dest) AS num_destinations,
+    RANK() OVER (ORDER BY COUNT(DISTINCT dest) DESC, origin ASC) AS rank
+FROM flights
+INNER JOIN airports a ON flights.origin = a.faa
+GROUP BY origin, a.name
+ORDER BY rank, airport_code;
+```
+
+Q2) 
+```{sql}
+
+#| connection: con_nycflights
+-- Step 1: Aggregate total number of seats for each destination airport
+SELECT
+    f.dest AS airport_code,
+    a.name AS airport_name,
+    SUM(p.seats) AS num_seats,
+    RANK() OVER (ORDER BY SUM(p.seats) DESC, f.dest ASC) AS rank
+FROM flights f
+INNER JOIN aircraft p ON f.tailnum = p.tailnum
+INNER JOIN airports a ON f.dest = a.faa
+GROUP BY f.dest, a.name
+ORDER BY rank, airport_code
+LIMIT 10;
+```
+
 
 3. From the JFK airport, which ten destination airports are most frequently served by flights? If airports are tied for the tenth place, ensure that all tied airports are included in the output. Include columns for the following attributes:
 
