@@ -37,7 +37,7 @@ CREATE TABLE airlines (
 
 -- Import data from the CSV file
 COPY airlines
-FROM 'C:\Users\itsss\Downloads\nycflights\airlines.csv'
+FROM 'C:/Users/itsss/Desktop/Lab04/nycflights13/nycflights13/airlines.csv'
 CSV HEADER;
 
 -- Drop the table if it exists
@@ -58,7 +58,7 @@ CREATE TABLE airports (
 
 -- Import data from the CSV file
 COPY airports(faa, name, lat, lon, alt, tz, dst, tzone)
-FROM 'C:\Users\itsss\Downloads\nycflights\airports.csv'
+FROM 'C:/Users/itsss/Desktop/Lab04/nycflights13/nycflights13/airports.csv'
 CSV HEADER;
 
 -- Drop the table if it exists
@@ -90,7 +90,7 @@ CREATE TABLE flights (
 
 -- Import data from the CSV file
 COPY flights(year, month, day, dep_time, sched_dep_time, dep_delay, arr_time, sched_arr_time, arr_delay, carrier, flight, tailnum, origin, dest, air_time, distance, hour, minute, time_hour)
-FROM 'C:\Users\itsss\Downloads\nycflights\flights.csv'
+FROM 'C:/Users/itsss/Desktop/Lab04/nycflights13/nycflights13/flights.csv'
 CSV HEADER;
 
 
@@ -117,7 +117,7 @@ CREATE TABLE planes (
 
 -- Import data from the CSV file
 COPY planes(tailnum, year, type, manufacturer, model, engines, seats, speed, engine)
-FROM 'C:/Users/phoin/Desktop/planes.csv'
+FROM 'C:/Users/itsss/Desktop/Lab04/nycflights13/nycflights13/planes.csv'
 CSV HEADER;
 ```
 ```{sql}
@@ -150,7 +150,7 @@ CREATE TABLE weather (
 
 -- Import data from the CSV file
 COPY weather(origin, year, month, day, hour, temp, dewp, humid, wind_dir, wind_speed, wind_gust, precip, pressure, visib, time_hour)
-FROM 'C:/Users/phoin/Desktop/weather.csv'
+FROM 'C:/Users/itsss/Desktop/Lab04/nycflights13/nycflights13/weather.csv'
 CSV HEADER;
 
 ALTER TABLE flights
@@ -163,6 +163,14 @@ ADD FOREIGN KEY (origin) REFERENCES airports (faa);
 ```
 
 # Task 2: Aggregating Information from the `flights` Table
+
+1. What are the rankings of New York City’s main airports in terms of the total number of destinations served? Include columns for the following attributes:
+
+Three-letter airport code
+Airport name
+Number of destinations
+Rank
+Sort the results first by rank and, then, alphabetically by the three-letter airport code. Hint: use INNER JOIN to get airport names from airports table.
 
 ```{sql}
 #| connection: con_nycflights13
@@ -177,7 +185,13 @@ GROUP BY origin, a.name
 ORDER BY rank, airport_code;
 ```
 
-Q2) 
+2. Which ten destination airports are served by the greatest number of seats from New York City? If airports are tied for the tenth place, ensure that all tied airports are included in the output. Include columns for the following attributes:
+
+Three-letter airport code
+Airport name
+Number of seats
+Rank
+
 ```{sql}
 #| connection: con_nycflights13
 -- Step 1: Aggregate total number of seats for each destination airport
