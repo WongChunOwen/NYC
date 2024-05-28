@@ -536,7 +536,7 @@ SELECT
 FROM ranked_delays
 ORDER BY rank, airport_code;
 ```
-4. What is the correlation coefficient between the mean temperature of the day and the mean departure delay on that day? Round the value to two decimal places. Provide the answer in the form of a table with one row and one column. Hint: calculate the AVG() of temperature for each day in 2013, and then the AVG() of departure delay for each day in 2013. After that, calculate the CORR() between these two sequences (of length 365 or less). Remember to INNER JOIN flights and weather.
+4. What is the correlation coefficient between the mean temperature of the day and the mean departure delay on that day? Round the value to two decimal places. Provide the answer in the form of a table with one row and one column. Hint: calculate the AVG() of temperature for each day in 2013, and then the AVG() of departure delay for each day in 2013. After that, calculate the CORR() between these two sequences (of length 365 or less). Remember to INNER JOIN flights and weather. 
 ```{sql}
 #| connection: con_nycflights13
 #| eval: TRUE
