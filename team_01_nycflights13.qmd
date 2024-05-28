@@ -9,13 +9,15 @@ format:
 # Collaborators
 ![](collaborators.png)
 
+# Other member pushing the nycflights13 folder
+![](addingNYC.png)
+
 # Task 1: Establishing a Productive Software Environment for the Project
 ```{r}
 #| label: setup
 #| include: false
 
 library(knitr)
-library(kableExtra)
 library(DBI)
 con_nycflights13 <- DBI::dbConnect(odbc::odbc(), dsn = "nycflights13")
 ```
