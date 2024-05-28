@@ -1,6 +1,6 @@
 ---
 title: "Lab 04"
-author: Wong Chun Owen
+author: Owen, Nigel, Xuan Yu, Sherwyn, Ash
 format:
   html:
     toc: true
