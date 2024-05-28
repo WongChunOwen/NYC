@@ -1,0 +1,112 @@
+---
+title: "TASK3"
+author: Ash
+format:
+  html:
+    toc: true
+---
+
+```{r}
+library(DBI)
+con <- dbConnect(odbc::odbc(), dsn = "nycflights13")
+
+```
+
+1. Which airport names in the `airports` table contain the string '`Chicago`'? Create a view named `chicago_airports` to save the result, including only the `faa` and `name` columns.
+
+```{sql}
+#| connection: con
+#| eval: true
+#| echo: true
+DROP VIEW IF EXISTS chicago_airports;
+CREATE VIEW chicago_airports AS
+SELECT faa, name
+FROM airports
+WHERE name LIKE '%Chicago%';
+```
+
+```{sql}
+#| connection: con
+#| eval: true
+#| echo: true
+
+SELECT *
+FROM chicago_airports;
+```
+
+2. How many flights departed from New York City to each of Chicago’s airports? Include columns for the following attributes:
+
+- Three-letter code of the destination airport
+- Name of the destination airport
+- Number of flights
+- Rank
+
+Sort the results first by rank and, then, alphabetically by the three-letter code of the destination airport.
+
+```{sql}
+#| connection: con
+#| eval: true
+#| echo: true
+
+SELECT dest, name, COUNT(*) AS num_flights, RANK() OVER (ORDER BY COUNT(*) DESC) AS rank
+FROM flights
+INNER JOIN chicago_airports
+ON flights.dest = chicago_airports.faa
+GROUP BY dest, name
+ORDER BY rank, dest;
+```
+
+3. Which airlines operated flights from New York City to Chicago? Include columns for the following attributes:
+
+- Two-letter airline code
+- Airline name
+- Number of flights
+- Rank
+
+Sort the results first by rank and, then, alphabetically by the two-letter airline code.
+
+```{sql}
+#| connection: con
+#| eval: true
+#| echo: true
+
+SELECT airlines.carrier, name, COUNT(*) AS num_flights, RANK() OVER (ORDER BY COUNT(*) DESC) AS rank
+FROM airlines
+INNER JOIN flights
+ON airlines.carrier = flights.carrier
+WHERE
+  (SELECT COUNT(*)
+   FROM chicago_airports
+   WHERE flights.dest = chicago_airports.faa) > 0
+GROUP BY airlines.carrier, name
+ORDER BY rank, airlines.carrier;
+```
+
+4. What were the ten most frequent combinations of manufacturer and model used for flights from New York City to Chicago? If manufacturer-model combinations are tied for the tenth place, incorporate all of them in the output. Include columns for each of the following attributes:
+
+- Manufacturer
+- Model
+- Number of flights
+- Rank
+
+Sort by rank, then alphabetically by manufacturer, and, lastly, by model.
+```{sql}
+#| connection: con
+#| eval: true
+#| echo: true
+
+SELECT manufacturer, model, COUNT(*) AS num_flights, RANK() OVER (ORDER BY COUNT(*) DESC) AS rank
+FROM planes
+INNER JOIN flights
+ON planes.tailnum = flights.tailnum
+WHERE
+  (SELECT COUNT(*)
+   FROM chicago_airports
+   WHERE flights.dest = chicago_airports.faa) > 0
+GROUP BY manufacturer, model
+ORDER BY rank, manufacturer, model;
+```
+
+5. 
+
+
